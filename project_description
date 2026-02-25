@@ -1,0 +1,241 @@
+# From Totals to Truth: Segmenting Growth at lightening.net (Bolt-style SaaS)
+
+## Project Objective
+
+Move beyond top-line metrics and answer:
+
+> Which users are actually driving durable revenue?
+
+This project focuses on **segmentation**, **activation**, **cohort retention**, **NRR durability**, and **forecasting**—built on a clean **fact table + dimensions** (analytics engineering mindset).
+
+---
+
+# Core Questions
+
+1. Which user segments drive compounding revenue?
+2. Where is revenue leakage occurring (churn vs downgrades vs failed activation)?
+3. Is growth durable or acquisition-dependent?
+4. What single metric should leadership monitor weekly?
+
+---
+
+# Data Model (Star Schema)
+
+## ✅ Fact Table (Required)
+
+### `fact_user_month` (CORE)
+**Grain:** `user_id × month` (one row per user per month)
+
+This table is designed to power:
+- MRR / ARR
+- churn / contraction / expansion
+- NRR bridges
+- cohort retention
+- activation vs retention analysis
+
+**Key fields**
+- `month`
+- `user_id`
+- `plan_id`
+- `seats`
+- `is_active`
+- `is_paying`
+- `mrr`
+- `new_paid`
+- `expansion_mrr`
+- `contraction_mrr`
+- `churn_mrr`
+- `churned_this_month`
+- `activation_within_7d`
+- `usage_events`
+- `deploys`
+- `projects_created`
+
+---
+
+## ✅ Dimension Tables (Required)
+
+### `dim_user`
+- `user_id`
+- `signup_date`
+- `acquisition_channel`
+- `country`
+- `account_type` (Individual / Team)
+- `initial_plan_id`
+- `first_project_date`
+- `first_deploy_date`
+
+### `dim_plan`
+- `plan_id`
+- `plan_name` (Free / Pro / Team / Enterprise)
+- `base_price`
+- `included_seats`
+- `seat_price`
+
+### `dim_month`
+- `month`
+- `month_start`
+- `month_end`
+- `year`
+- `month_num`
+- `month_name`
+
+---
+
+# Step 1: Define MECE Segments
+
+Segments must be **mutually exclusive and collectively exhaustive (MECE)**.
+
+**Required segments**
+- Plan type (Free, Pro, Team, Enterprise)
+- Signup cohort (month of signup)
+- User maturity (0–30 days, 31–90 days, 90+ days)
+- Usage intensity (Low / Medium / Power)
+- Account type (Individual vs Team)
+- Geography (optional)
+- **Unknown bucket** (mandatory for data quality)
+
+---
+
+# Step 2: Activation Analysis
+
+## Key Question
+> Which product behavior happens first—and which behaviors predict retention?
+
+Track:
+- Signup → first project created
+- Signup → first deploy
+- first deploy within 7 days (activation)
+
+Then segment by:
+- plan
+- cohort
+- maturity
+- intensity
+
+---
+
+# Step 3: Cohort Retention Modeling
+
+Build cohort retention matrix:
+
+| Signup Month | Month 0 | Month 1 | Month 2 | Month 3 |
+|------------|---------|---------|---------|---------|
+
+Calculate:
+- logo retention %
+- revenue retention %
+- churn concentration by cohort
+
+Segment by:
+- plan type
+- activation status
+- usage intensity
+
+---
+
+# Step 4: Segmented Net Revenue Retention (NRR)
+
+NRR is measured **only on existing customers** (no new signups).
+
+\[
+NRR = (Starting Revenue + Expansion − Contraction − Churn) / Starting Revenue
+\]
+
+Calculate NRR by:
+- plan
+- cohort
+- activation status
+- maturity bucket
+
+Goal:
+- identify which segment is compounding and which is leaking
+
+---
+
+# Step 5: Forecast Simulation (12-month durability)
+
+Model 3 scenarios:
+
+### Scenario A — Status Quo
+- current churn and NRR continue
+
+### Scenario B — Activation Improves
+- activation within 7 days improves by +5%
+- measure effect on churn / NRR
+
+### Scenario C — Acquisition Slows
+- new user signups drop by -20%
+- measure ARR stability
+
+Outputs:
+- projected MRR by month
+- projected ARR after 12 months
+- LTV sensitivity vs churn
+
+---
+
+# Step 6: Anomaly Detection (Signal vs Noise)
+
+Simulate:
+- sudden 3% drop in NRR in one month
+
+Debug checklist:
+- cohort shift?
+- plan mix shift?
+- expansion slowdown?
+- join duplication / metric drift?
+- refunds / credits timing?
+
+---
+
+# Step 7: Predictive Layer (Optional but Strong)
+
+## Don’t start with regression.
+Start with clean modeling + segmentation.
+
+Then add predictive modeling:
+
+### ✅ Logistic regression (recommended)
+Predict **churn probability** using:
+- `activation_within_7d`
+- `usage_events`
+- `deploys`
+- `plan_id`
+- `maturity bucket`
+- `account_type`
+
+Deliver:
+- top churn predictors
+- interpretation → product/CS levers
+
+---
+
+# Executive Summary (Required)
+
+Write a 5–7 sentence memo answering:
+
+1. Which segment drives compounding revenue?
+2. Which segment leaks revenue?
+3. Is growth durable or acquisition-dependent?
+4. What metric should leadership monitor weekly?
+5. Is the trend structural or noise?
+
+---
+
+# Final Deliverables
+
+- Fact table + dimensions
+- Segmentation framework
+- Cohort retention matrix
+- NRR by segment
+- 12-month forecast scenarios
+- Executive memo
+- (Optional) churn prediction model
+
+---
+
+# Guiding Principle
+
+Totals show direction.
+Segmentation reveals truth.

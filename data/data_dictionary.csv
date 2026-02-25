@@ -1,0 +1,17 @@
+table,field,description
+fact_user_month,month,Month start date (YYYY-MM-01). Grain: user_id x month.
+fact_user_month,user_id,Unique user/account id.
+fact_user_month,plan_id,FK to dim_plan. Plan active during the month.
+fact_user_month,seats,Seat count for Team/Enterprise accounts.
+fact_user_month,is_active,"1 if account active this month, else 0."
+fact_user_month,is_paying,"1 if plan is paid (Pro/Team/Enterprise), else 0."
+fact_user_month,mrr,Monthly recurring revenue for this user-month after upgrades/downgrades.
+fact_user_month,new_paid,"1 if user became paying this month (Free->Paid), else 0."
+fact_user_month,expansion_mrr,MRR increase from existing customer changes (upgrade/seat expansion) this month.
+fact_user_month,contraction_mrr,MRR decrease from downgrades/seat contraction this month.
+fact_user_month,churn_mrr,MRR lost due to churn event in this month.
+fact_user_month,churned_this_month,"1 if churn happened this month, else 0."
+fact_user_month,activation_within_7d,1 if first deploy occurred within 7 days of signup.
+fact_user_month,usage_events,Simulated count of usage events in the month.
+fact_user_month,deploys,Simulated count of deploy events in the month.
+fact_user_month,projects_created,Simulated count of projects created in the month.
